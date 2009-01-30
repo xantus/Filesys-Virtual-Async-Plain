@@ -3,7 +3,7 @@ package Filesys::Virtual::Async::Plain;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Filesys::Virtual::Async;
 use base qw( Filesys::Virtual::Async );
@@ -49,7 +49,7 @@ sub dirlist {
             my $file = pop @$files or return;
             add $grp aio_stat $file->[ 0 ], sub {
                 $_[ 0 ] and return;
-                $list->[ $file->[ 1 ] ]->[ 1 ] = [ (CORE::stat( _ )) ];
+                $list->[ $file->[ 1 ] ]->[ 1 ] = $_[ 1 ];
             };
         };
     } );
@@ -289,7 +289,7 @@ $fs->mkdir( '/bar', $mode, sub {
 =head1 DESCRIPTION
 
 Filesys::Virtual::Async::Plain provides non-blocking access to virtual
-filesystem rooted in a real filesystem.  It's like a chrooted filesytem.
+filesystem rooted in a real filesystem.  It's like a chrooted filesytem
 
 =head1 WARNING
 
@@ -299,11 +299,38 @@ the irc channel #poe on irc.perl.org and speak with xantus[] or Apocalypse
 
 =head1 OBJECT METHODS
 
+=over 4
+
+=item new( root => $path );
+
+root is optional, and defaults to /.  root is prepended to all paths after
+resolution
+
+=item cwd()
+
+Returns the current working directory (virtual)
+
+=item root() or root( $path )
+
+Gets or sets the root path
+
+=back
+
+=head1 CALLBACK METHODS
+
 All of these work exactly like the L<IO::AIO> methods of the same name.  Use
 L<IO::AIO> as a reference for these functions.  This module is mostly a wrapper
-around L<IO::AIO>
+around L<IO::AIO>.  All paths passed to these functions are resolved for you, so
+pass virtual paths, not the full path on disk as you would pass to aio
 
 =over 4
+
+=item dirlist( $path, $withstat, $callback )
+
+Not an aio method, but a helper that will fetch a list of files in a path, and
+optionally stat each file.  The callback is called with an array.  The first
+element is the file name and the second param is an array ref of the return value
+of io_stat() if requested.
 
 =item open()
 
@@ -363,31 +390,6 @@ around L<IO::AIO>
 
 =back
 
-=over 4
-
-=item cwd()
-
-Returns the current working directory (virtual)
-
-=item root() or root($path)
-
-Gets or sets the root path.  This path is prepended to the path returned from
-_path_from_root
-
-=item _path_from_root($path)
-
-Resolves a path, with the root path prepended
-
-=item _resolve_path($path)
-
-Resolves a path to a normalized direct path based on the cwd, allowing .. 
-traversal, and the ~ home directory shortcut (if home_path is defined)
-
-For example, if the cwd is /foo/bar/baz, and $path is 
-/../../../../foo/../foo/./bar/../foo then /foo will be returned
-
-=back
-
 =head1 SEE ALSO
 
 L<Filesys::Virtual::Async>
@@ -401,7 +403,7 @@ L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Filesys-Virtual-Async-Plain>
 
 =head1 AUTHOR
 
-David Davis E<lt>xantus@cpan.orgE<gt>
+David W Davis E<lt>xantus@cpan.orgE<gt>
 
 =head1 RATING
 
@@ -410,7 +412,7 @@ L<http://cpanratings.perl.org/rate/?distribution=Filesys::Virtual::Async::Plain>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2009 by David Davis
+Copyright (c) 2009 by David W Davis, All rights reserved
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself

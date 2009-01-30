@@ -1,9 +1,10 @@
 --- #YAML:1.0
 name:                Filesys-Virtual-Async-Plain
-version:             0.01
-abstract:            ~
-license:             ~
-author:              ~
+version:             0.02
+abstract:             A plain non-blocking virtual filesystem
+license:             perl
+author:              
+    - David Davis <xantus@cpan.org>
 generated_by:        ExtUtils::MakeMaker version 6.44
 distribution_type:   module
 requires:     
